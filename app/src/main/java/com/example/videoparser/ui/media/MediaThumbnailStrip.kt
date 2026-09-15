@@ -32,8 +32,7 @@ internal fun MediaThumbnailStrip(pager: PagerState, modifier: Modifier = Modifie
     var navigation by remember { mutableStateOf<Job?>(null) }
     val stride = with(LocalDensity.current) { 60.dp.toPx() }
     BoxWithConstraints(modifier.fillMaxWidth()) {
-        // Follow fractional pager position directly; a second animation would lag behind a swipe.
-        // Manual filmstrip scrolling remains independent until the main pager moves again.
+        // 直接跟随分页位置，避免额外动画滞后；手动滚动缩略图条后，直到主分页变化才恢复跟随。
         LaunchedEffect(pager, stride, maxWidth) {
             snapshotFlow { pager.currentPage + pager.currentPageOffsetFraction }.collect { position ->
                 val bounded = position.coerceIn(0f, (pager.pageCount - 1).coerceAtLeast(0).toFloat())

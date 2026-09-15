@@ -180,7 +180,7 @@ internal fun ImageServiceSettings(onClose: () -> Unit) {
         require(apiKey.isNotBlank() || endpoint.trim() == activeSaved.endpoint || !hasKey) { "地址已修改，请重新填写密钥" }
         return apiKey.trim().ifBlank { store.apiKey(activeId) }
     }
-    // Listing models doubles as the connection check: it exercises the address and credentials.
+    // 获取模型列表同时验证接口地址和凭据是否可用。
     fun fetchModels() {
         if (busy) return
         busy = true; message = null; probeFailed = false
@@ -320,7 +320,7 @@ private fun ProbeStatus(text: String, failed: Boolean) {
     }
 }
 
-// Compact action living inside a form row; the spinner replaces the label while working.
+// 表单行内的紧凑操作按钮，请求期间以加载指示替换文字。
 @Composable
 private fun FormRowAction(label: String, busy: Boolean, enabled: Boolean, onClick: () -> Unit) {
     Box(Modifier.heightIn(min = 32.dp).widthIn(min = 72.dp).clip(RoundedCornerShape(50.dp))
@@ -337,7 +337,7 @@ private fun FormRowAction(label: String, busy: Boolean, enabled: Boolean, onClic
 private val FormRowLabelWidth = 56.dp
 private val FormRowDividerInset = 16.dp + FormRowLabelWidth + 12.dp
 
-// One grouped-form row: fixed label on the left, borderless single-line field on the right.
+// 分组表单统一使用左侧固定标签和右侧无边框单行输入。
 @Composable
 internal fun StudioFormRow(label: String, value: String, onChange: (String) -> Unit, hint: String, secret: Boolean = false,
     enabled: Boolean = true, keyboardType: KeyboardType = KeyboardType.Text, trailing: (@Composable () -> Unit)? = null) {

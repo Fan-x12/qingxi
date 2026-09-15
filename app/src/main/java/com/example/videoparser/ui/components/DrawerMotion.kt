@@ -28,7 +28,7 @@ internal fun rememberDrawerMotion(open: Boolean): DrawerMotion {
     val motion = remember { DrawerMotion(open) }
     LaunchedEffect(open, motion.dragging) {
         if (!motion.dragging) {
-            // Preserve velocity when a button/back action reverses an animation.
+            // 按钮或返回操作反转动画时保留当前速度。
             val velocity = motion.releaseVelocity ?: motion.animation.velocity
             motion.releaseVelocity = null
             motion.animation.animateTo(if (open) 1f else 0f,
@@ -50,8 +50,7 @@ internal fun Modifier.drawerGestures(
         if (!enabled) return@pointerInput
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
-            // The opening zone is supplied by the page (full width). Child
-            // horizontal controls may consume the gesture before this parent.
+            // 页面提供全宽拖拽区域，子级横向控件可以优先消费手势。
             if (motion.progress < .001f && down.position.x > edgePx) return@awaitEachGesture
             val tracker = VelocityTracker()
             val startedOpen = motion.progress >= .5f
@@ -77,12 +76,11 @@ internal fun Modifier.drawerGestures(
             val target = when {
                 velocity > 1f -> true
                 velocity < -1f -> false
-                // A short deliberate drag opens; the reverse gesture closes at
-                // the matching distance, without requiring a half-screen pull.
+                // 短距离有意拖拽即可打开，反向拖拽以对称距离关闭，无需拉过半屏。
                 else -> motion.dragProgress >= (if (startedOpen) .7f else .3f)
             }
             val releasePosition = motion.dragProgress
-            // Transfer the exact release position before the next rendering frame.
+            // 下一帧绘制前同步松手时的准确位置。
             scope.launch(start = CoroutineStart.UNDISPATCHED) {
                 motion.animation.snapTo(releasePosition)
                 motion.releaseVelocity = velocity.coerceIn(-4f, 4f)

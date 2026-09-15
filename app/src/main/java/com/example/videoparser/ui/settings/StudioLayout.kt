@@ -56,7 +56,7 @@ internal object StudioStyle {
     val pageSurface = RoundedCornerShape(22.dp)
 }
 
-// Shared insets and width limit keep every utility page usable on landscape/tablets.
+// 统一安全区和最大宽度，让功能页面适配横屏和平板。
 @Composable
 internal fun StudioPage(title: String, onClose: () -> Unit, actions: @Composable RowScope.() -> Unit = {},
     navigationSurface: Color = StudioStyle.canvas,
@@ -64,7 +64,7 @@ internal fun StudioPage(title: String, onClose: () -> Unit, actions: @Composable
     PageSystemBars(StudioStyle.canvas, navigationSurface)
     Box(Modifier.fillMaxSize().background(StudioStyle.canvas),
         contentAlignment = Alignment.TopCenter) {
-        // Paint behind the gesture/three-button bar before applying content insets.
+        // 先绘制导航栏背后的背景，再为页面内容应用安全区留白。
         Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth()
             .windowInsetsBottomHeight(WindowInsets.navigationBars).background(navigationSurface))
         Column(Modifier.safeDrawingPadding().imePadding().widthIn(max = 720.dp).fillMaxSize()) {
@@ -99,7 +99,7 @@ internal fun StudioDivider(startInset: Dp = 62.dp) {
     Box(Modifier.fillMaxWidth().padding(start = startInset, end = 16.dp).height(.7.dp).background(StudioStyle.hairline))
 }
 
-// Secondary explanation under a section card; wraps naturally and never competes with rows.
+// 分组下方的辅助说明自然换行，避免干扰主要条目。
 @Composable
 internal fun StudioFootnote(text: String) {
     Text(text, color = StudioStyle.muted, fontSize = 12.sp, lineHeight = 18.sp,
@@ -112,8 +112,7 @@ internal fun StudioNavigation(icon: ImageVector, title: String, detail: String, 
     selectable: Boolean = false, trailing: (@Composable () -> Unit)? = null, onClick: () -> Unit) {
     val iconInk = if (selected) Color.White else StudioStyle.ink
     Row(Modifier.fillMaxWidth()
-        // Settings entries use the whole rectangular row. Only inset selection tiles
-        // have their own rounded boundary; the section clips its outer corners.
+        // 设置条目使用完整矩形行；内嵌选项保留自身圆角，分组容器裁切外边界。
         .then(if (selectable) Modifier.padding(horizontal = 5.dp, vertical = 4.dp).clip(StudioStyle.control) else Modifier)
         .background(if (selected) Color(0xFFF0F1F3) else Color.Transparent, StudioStyle.control)
         .semantics { if (selectable) this.selected = selected }

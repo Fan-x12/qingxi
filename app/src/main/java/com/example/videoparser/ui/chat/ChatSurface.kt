@@ -35,7 +35,7 @@ internal object ChatTypography {
     val detail = TextStyle(fontSize = 12.sp, lineHeight = 18.sp)
 }
 
-// Opaque, borderless surfaces avoid expensive diffuse shadows over the animated canvas.
+// 使用不透明、无边框的消息背景，减少动态画布上大范围阴影的开销。
 internal fun Modifier.resultSurface(): Modifier =
     clip(RoundedCornerShape(22.dp)).background(StudioStyle.response)
 
@@ -44,8 +44,7 @@ internal fun UserMessageBubble(text: String, isLink: Boolean = false, maxLines: 
     Box(Modifier.widthIn(max = 480.dp)
         .background(StudioStyle.userBubble, StudioStyle.bubbleShape)
         .padding(horizontal = 14.dp, vertical = 11.dp)) {
-        // Preserve the source text for selection/copy. Simple wrapping does not rebalance
-        // short messages into heading-like lines or add hyphens to URL tokens.
+        // 保留原文供选择与复制，正常换行，不人为重排短消息或给链接插入连字符。
         Text(text, style = ChatTypography.body.copy(
             fontFamily = FontFamily.SansSerif,
             fontSize = if (isLink) 14.sp else 15.sp,
@@ -58,15 +57,14 @@ internal fun UserMessageBubble(text: String, isLink: Boolean = false, maxLines: 
     }
 }
 
-// Compact visual surface within a full-height touch target, shared by media save actions.
+// 媒体保存操作共用紧凑按钮外观，同时保留足够的点击高度。
 @Composable
 internal fun ChatSaveAction(label: String, icon: ImageVector, modifier: Modifier = Modifier,
     enabled: Boolean = true, grouped: Boolean = false, busy: Boolean = false, onClick: () -> Unit) {
     val shape = RoundedCornerShape(50.dp)
     val ink = if ((enabled || busy) && !grouped) Color.White else if (enabled || busy) StudioStyle.ink else StudioStyle.muted
     Box(modifier.heightIn(min = 48.dp), contentAlignment = Alignment.Center) {
-        // The clickable's automatic minimum touch target reaches into the outer padding;
-        // its indication is clipped to the actual painted button, not that padding.
+        // 最小点击区域可延伸到外侧留白，反馈效果只绘制在按钮实际范围内。
         Row(Modifier.fillMaxWidth().heightIn(min = 36.dp).clip(shape)
             .background(if (grouped) Color.Transparent else if (enabled || busy) StudioStyle.ink else StudioStyle.soft, shape)
             .appClickable(enabled = enabled, rippleColor = ink, onClick = onClick)
@@ -81,8 +79,7 @@ internal fun ChatSaveAction(label: String, icon: ImageVector, modifier: Modifier
     }
 }
 
-// Only for soft decorative layers: the caller scales its blur radius by the same divisor.
-// Layout and interaction bounds stay unchanged; sharp media must remain outside this layer.
+// 仅用于柔和装饰层，模糊半径按相同比例缩小；布局与交互范围不变，清晰媒体应放在此层外。
 internal fun Modifier.reducedResolutionLayer(divisor: Int = 2): Modifier = layout { measurable, constraints ->
     check(divisor > 0)
     val placeable = measurable.measure(constraints.copy(
@@ -100,14 +97,14 @@ internal fun Modifier.reducedResolutionLayer(divisor: Int = 2): Modifier = layou
     }
 }
 
-// A static, diffuse shadow separates opaque messages from the moving background.
+// 静态柔和阴影用于区分不透明消息与动态背景。
 internal fun Modifier.chatShadow(shape: Shape = StudioStyle.group): Modifier = shadow(
     elevation = 24.dp, shape = shape, clip = false,
     ambientColor = Color(0xFF566274).copy(alpha = .09f),
     spotColor = Color(0xFF566274).copy(alpha = .06f)
 )
 
-// Force rounded media and cards onto one composited layer so their clipped edge stays smooth.
+// 将圆角媒体和卡片合成到同一层，保持裁切边缘平滑。
 internal fun Modifier.smoothClip(shape: Shape): Modifier = graphicsLayer {
     this.shape = shape
     clip = true

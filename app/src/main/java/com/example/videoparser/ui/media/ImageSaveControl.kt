@@ -69,7 +69,7 @@ internal fun ImageSaveControl(phase: ImageSavePhase, enabled: Boolean, compact: 
                 }
             }
         }
-        // A popup never changes the card's measured height or pushes the timeline around.
+        // 浮层不改变卡片测量高度，也不推动时间线。
         var retained by remember { mutableStateOf<String?>(null) }
         val opacity = remember { androidx.compose.animation.core.Animatable(0f) }
         LaunchedEffect(feedback) {

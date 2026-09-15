@@ -52,8 +52,7 @@ class BugPkPlatformProvider(
                 ?: "BugPk 聚合接口返回错误"
         }
         require(envelope["data"] is JsonObject) { "接口未返回媒体数据" }
-        // /svparse duration is already seconds (real sample: 80.01), unlike extra.duration_ms.
-        // Only data.url is the primary video; video_backup and music must not become extra items.
+        // /svparse 的 duration 单位为秒；只将 data.url 视为主视频，备用视频和音乐不额外生成作品。
         return mapper.mapResponse(root, request.sourceUrl, request.platform).copy(providerName = name)
     }
 }

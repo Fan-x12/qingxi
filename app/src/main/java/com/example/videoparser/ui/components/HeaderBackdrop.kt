@@ -22,8 +22,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeChild
 
-// The entire conversation remains the Haze source, while the expensive effect is
-// restricted to the narrow chrome overlap at the top and bottom of the viewport.
+// 整段对话作为 Haze 的背景来源，仅在视口顶部和底部的控件重叠区域应用模糊。
 @OptIn(ExperimentalHazeApi::class)
 @Composable
 internal fun ProgressiveHeaderBackdrop(

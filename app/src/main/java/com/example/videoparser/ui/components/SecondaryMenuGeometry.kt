@@ -1,10 +1,9 @@
 package com.example.videoparser
 
-// Coordinates use the caller's units. Grow from the trigger corner; never scale text.
+// 坐标沿用调用方单位，从触发角展开面板，不缩放文字。
 internal fun menuRevealBounds(width: Float, height: Float, progress: Float, end: Boolean, up: Boolean, radius: Float = 20f): FloatArray {
     val p = progress.coerceIn(0f, 1f)
-    // Start at 38% width. A slight lead over height makes the corner open into
-    // a panel, while retaining visible horizontal travel through the middle.
+    // 宽度从 38% 开始并略领先高度，让面板沿横向持续展开。
     val widthProgress = p + .18f * p * (1f - p)
     val diameter = 2f * radius.coerceAtLeast(0f)
     val initialWidth = maxOf(width * .38f, diameter).coerceAtMost(width)

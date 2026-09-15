@@ -37,7 +37,7 @@ internal fun PageSystemBars(statusBackground: Color, navigationBackground: Color
                 isAppearanceLightNavigationBars = darkNavigationIcons
             }
             if (Build.VERSION.SDK_INT >= 29) {
-                // The page already draws an opaque background behind both system bars.
+                // 页面已在两侧系统栏后方绘制不透明背景。
                 window.isNavigationBarContrastEnforced = false
                 @Suppress("DEPRECATION")
                 window.isStatusBarContrastEnforced = false

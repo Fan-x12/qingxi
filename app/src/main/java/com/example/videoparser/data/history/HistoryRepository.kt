@@ -75,7 +75,7 @@ class HistoryRepository(context: Context) {
     fun load(): List<HistoryEntry> = runCatching {
         json.decodeFromString<List<HistoryEntry>>(preferences.getString(KEY, "[]") ?: "[]")
     }.getOrDefault(emptyList()).map { entry ->
-        // History cards also render their cover before opening a ParseResult.
+        // 历史卡片在恢复完整解析结果前也需要显示封面。
         entry.copy(coverUrl = entry.coverUrl?.let(::secureMediaUrl))
     }
 

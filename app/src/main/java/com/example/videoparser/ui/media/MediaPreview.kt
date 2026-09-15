@@ -65,16 +65,14 @@ internal fun MediaPreview(video: MediaItem?, cover: String?, modifier: Modifier,
     onAspectRatio: (Float) -> Unit) {
     var started by rememberSaveable(video?.url) { mutableStateOf(false) }
     var startFullScreen by rememberSaveable(video?.url) { mutableStateOf(false) }
-    // The attachment owns the outer corners; the video meets its caption without an inset rim.
+    // 外层附件负责圆角，视频与说明区域直接衔接，不额外添加内边框。
     BoxWithConstraints(modifier.clipToBounds().background(Color(0xFF35383D)), contentAlignment = Alignment.Center) {
-        // Keep the attachment canvas stable. Portrait and landscape media fit
-        // inside it without shrinking the whole conversation card or clipping.
+        // 保持附件画布稳定，横竖媒体在内部适配，不缩小整张消息卡片或裁切内容。
         val safeRatio = aspectRatio.takeIf { it.isFinite() && it > 0f } ?: 16f / 9f
         val widthFromHeight = maxHeight * safeRatio
         val frameWidth = minOf(maxWidth, widthFromHeight)
         val frameHeight = frameWidth / safeRatio
-        // Ambient cover fills the letterbox area without cropping the actual video.
-        // Decode a small decorative image: inexpensive and softly upscaled on older Android.
+        // 用低分辨率封面柔和填充视频留白，不裁切实际视频，并降低旧设备的解码开销。
         cover?.let {
             val context = LocalContext.current
             val ambientRequest = remember(context, it) {
@@ -83,8 +81,7 @@ internal fun MediaPreview(video: MediaItem?, cover: String?, modifier: Modifier,
             AsyncImage(
                 ambientRequest,
                 contentDescription = null, contentScale = ContentScale.Crop,
-                // A tiny decoded cover still costs a full-size GPU blur unless its render
-                // target is reduced too. Restore the same 28.dp visual blur after upscaling.
+                // 低分辨率封面仍需缩小绘制目标才能降低 GPU 模糊开销；放大后保持 28dp 的视觉模糊。
                 modifier = Modifier.fillMaxSize().scale(1.12f)
                     .reducedResolutionLayer(divisor = 4).blur(7.dp)
             )
@@ -94,8 +91,7 @@ internal fun MediaPreview(video: MediaItem?, cover: String?, modifier: Modifier,
             PlaybackPreview(video.url, maxWidth, maxHeight, frameWidth, frameHeight, startFullScreen, onAspectRatio)
         } else {
             Box(Modifier.fillMaxWidth().height(frameHeight), contentAlignment = Alignment.Center) {
-                // Keep list geometry stable while a cached or remote cover enters the viewport.
-                // The player can report its actual ratio after an explicit play action.
+                // 封面进入视口时保持列表几何稳定，主动播放后再由播放器报告实际比例。
                 cover?.let { AsyncImage(it, "视频封面", contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxSize()) }
                 if (video != null) {
@@ -129,7 +125,7 @@ private fun PlaybackPreview(url: String, canvasWidth: Dp, canvasHeight: Dp, fram
         val factory = PlaybackCache.dataSource(context)
         ExoPlayer.Builder(context.applicationContext)
             .setLoadControl(DefaultLoadControl.Builder()
-                // Start promptly, then keep a substantial forward buffer for variable mobile networks.
+                // 优先快速起播，再保留较充足的前向缓冲以适应移动网络波动。
                 .setBufferDurationsMs(15_000, 50_000, 750, 1_500)
                 .setPrioritizeTimeOverSizeThresholds(true)
                 .build())
@@ -209,7 +205,7 @@ private fun PlaybackPreview(url: String, canvasWidth: Dp, canvasHeight: Dp, fram
             onSeekingChange = { scrubbing = it }
         )
     }
-    // Only one PlayerView is attached. Fullscreen changes its host, not the player or playback position.
+    // 始终只挂载一个 PlayerView；全屏切换宿主，不重建播放器或改变播放位置。
     var controlsVisible by remember { mutableStateOf(true) }
     LaunchedEffect(controlsVisible, playing, buffering, failed, scrubbing) {
         if (controlsVisible && playing && !buffering && !failed && !scrubbing) {
@@ -217,8 +213,7 @@ private fun PlaybackPreview(url: String, canvasWidth: Dp, canvasHeight: Dp, fram
             controlsVisible = false
         }
     }
-    // PlayerView fits the video internally; controls use the whole attachment canvas, not
-    // the narrow letterboxed portrait frame, so the seek bar retains usable width.
+    // 视频在 PlayerView 内适配，控制条使用整个附件宽度，避免竖视频两侧留白挤窄进度条。
     Box(Modifier.size(canvasWidth, canvasHeight).appClickable(feedback = false) { controlsVisible = !controlsVisible }) {
         if (!fullScreen) {
             VideoSurface(player, Modifier.size(frameWidth, frameHeight).align(Alignment.Center))
@@ -279,7 +274,7 @@ internal fun ImmersivePlayerWindow() {
                 previousStatusContrast?.let { window.isStatusBarContrastEnforced = it }
                 previousNavigationContrast?.let { window.isNavigationBarContrastEnforced = it }
             }
-            // Only the dialog was changed. Its host Activity keeps its original bar appearance.
+            // 仅恢复弹窗窗口的系统栏，宿主 Activity 的外观保持不变。
         }
     }
 }

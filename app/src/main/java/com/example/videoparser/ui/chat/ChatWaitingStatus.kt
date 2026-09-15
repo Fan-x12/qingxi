@@ -40,7 +40,7 @@ internal fun ChatWaitingStatus(title: String, colors: AppPalette, modifier: Modi
         ShimmerTitle(title, colors)
         Spacer(
             Modifier.widthIn(max = 336.dp).fillMaxWidth(.96f).aspectRatio(1.25f).drawWithCache {
-                // Everything that depends only on size is built once; time is read only while drawing.
+                // 仅依赖尺寸的数据缓存一次，时间参数只在绘制阶段读取。
                 val lattice = DotLattice(size.width, size.height, 2.5.dp.toPx())
                 onDrawBehind {
                     val seconds = if (motion) elapsedMillis / 1000f else DotLattice.STILL_SECONDS
@@ -76,7 +76,7 @@ internal fun parsingSpectrumColor(position: Float): Color {
     return lerp(ParsingSpectrum[index], ParsingSpectrum[index + 1], scaled - index)
 }
 
-// Perceptual (Oklab) blends are precomputed here so the per-frame mix stays a plain sRGB lerp.
+// 预先计算 Oklab 感知色彩混合，逐帧绘制时只进行简单的 sRGB 插值。
 private class DotSpectrum(quietBase: Color) {
     val size = 96
     private val active = FloatArray(size * 3)
@@ -152,7 +152,7 @@ private class DotLattice(width: Float, height: Float, radiusCap: Float) {
         for (row in 0 until rows) for (column in 0 until columns) {
             val x = column.toFloat() / (columns - 1)
             val y = row.toFloat() / (rows - 1)
-            // Round the silhouette by omitting corner dots, keeping every visible dot circular.
+            // 省略角落点形成圆角轮廓，其余点保持正圆。
             val cornerX = (abs(x - .5f) - .39f).coerceAtLeast(0f)
             val cornerY = (abs(y - .5f) - .39f).coerceAtLeast(0f)
             if (cornerX * cornerX + cornerY * cornerY > .13f * .13f) continue
@@ -165,7 +165,7 @@ private class DotLattice(width: Float, height: Float, radiusCap: Float) {
             hue[n] = x * .52f + y * .28f
             cloudA[n] = shade * TAU
             cloudB[n] = noiseB.at(x, y) * TAU
-            // Dots develop from the middle outwards along an irregular front rather than in rings.
+            // 点阵从中心沿不规则边界向外展开，不形成同心圆。
             delay[n] = BLOOM_SPREAD * (.55f * distance / .7071f + .45f * shade)
             n++
         }
@@ -183,9 +183,7 @@ private class DotLattice(width: Float, height: Float, radiusCap: Float) {
             if (appear <= 0f) continue
             val x = nx[i]
             val y = ny[i]
-            // A broad curved band drifts diagonally on a 6.4s loop; phase and velocity match at
-            // the seam so there is no visible reset. Two slow noise-phased layers add drifting
-            // cloud shadows so the field keeps changing between passes of the band.
+            // 弧形光带以 6.4 秒周期斜向移动，首尾相位与速度一致；两层缓慢变化的噪声阴影保持背景流动。
             val bend = .28f * sin(y * TAU - phase)
             val wave = .5f + .5f * cos(x * TAU - y * HALF_TAU + bend - phase)
             val ribbon = wave * wave * wave

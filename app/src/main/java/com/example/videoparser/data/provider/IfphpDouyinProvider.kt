@@ -139,7 +139,7 @@ class IfphpDouyinProvider(
                 live.filter { it.url !in usedLiveUrls }.forEach(::add)
             }
             else -> {
-                // Only explicit video fields are eligible; music, avatars and share links are not media fallbacks.
+                // 只接受明确的视频字段，不把音乐、头像或分享链接当作备用媒体。
                 if (primaryVideo != null) listOf(MediaItem(MediaType.VIDEO, primaryVideo,
                     previewUrl = cover, width = text(data, "width")?.toIntOrNull(), height = text(data, "height")?.toIntOrNull()))
                 else if (live.isNotEmpty()) live + images.filter { image -> live.none { sameMedia(it.previewUrl, image) } }

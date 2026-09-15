@@ -33,7 +33,7 @@ internal fun MediaViewerLayout(title: String, onClose: () -> Unit, tapToHide: Bo
     content: @Composable BoxScope.() -> Unit) {
     var controlsVisible by remember { mutableStateOf(true) }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        // The media owns the entire window. Insets apply to controls only.
+        // 媒体占满窗口，安全区留白只应用到控制按钮。
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center, content = content)
         if (tapToHide) Box(Modifier.fillMaxSize().appClickable(feedback = false) { controlsVisible = !controlsVisible })
         AnimatedVisibility(controlsVisible, enter = fadeIn(tween(160)), exit = fadeOut(tween(160)),

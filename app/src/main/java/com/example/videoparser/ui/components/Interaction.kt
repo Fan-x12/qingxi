@@ -19,9 +19,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
-// Bounded platform ripple; callers clip to the actual button or row shape.
-// No scale or opacity animation is stacked on the press feedback.
-// Compose clickable keeps press cancellation on scroll, keyboard activation and semantics.
+// 使用有边界的系统水波纹，由调用方裁切到控件形状；不叠加缩放或透明度动画，保留滚动取消、键盘与无障碍行为。
 @Composable
 internal fun Modifier.appClickable(
     enabled: Boolean = true,

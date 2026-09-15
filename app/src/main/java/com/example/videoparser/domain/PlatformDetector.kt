@@ -13,7 +13,7 @@ object PlatformDetector {
         '。', '，', '；', '：', '！', '？', '）', '】', '》', '"', '\'', '”', '’'
     )
 
-    /** Extracts the first URL from a full platform share message and removes sentence punctuation. */
+    /** 从完整分享文本提取首个链接，并清除句末标点。 */
     fun clean(raw: String): String {
         val candidate = urlPattern.find(raw.trim())?.value ?: raw.trim()
         return candidate.trimEnd { it in trailingPunctuation }

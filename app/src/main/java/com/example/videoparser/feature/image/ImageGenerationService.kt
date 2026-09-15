@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-// Process-owned state survives page changes and ViewModel recreation.
+// 生图状态由进程持有，切换页面或重建 ViewModel 时继续保留。
 /** 保存进程内共享的生图状态，供页面与前台服务共同使用。 */
 internal object ImageGenerationSession {
     private var initialized = false
@@ -106,7 +106,7 @@ class ImageGenerationService : Service() {
                 ImageGenerationSession.generating.value = false
             }
         }
-        // Never resubmit an image request after process death: it may already have been billed.
+        // 进程终止后不自动重发生成请求，避免已计费的任务重复扣费。
         return START_NOT_STICKY
     }
 

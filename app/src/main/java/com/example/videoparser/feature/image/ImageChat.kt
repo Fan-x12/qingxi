@@ -114,16 +114,14 @@ internal fun ImageChatTimeline(
     selectedImage?.let { ImageViewer(it, viewModel) { selectedImage = null } }
 
     val initialIds = remember { turns.map { it.id }.toSet() }
-    // Newest turn first with reverseLayout: the latest response stays pinned to the bottom while it
-    // grows from waiting dots into images, and while the keyboard or composer changes height.
+    // 反向列表将最新响应固定在底部，等待状态转为图片或键盘高度变化时，内容向上扩展。
     val listState = rememberLazyListState()
     val bottomControl = rememberChatBottomControl(listState)
     KeepLatestResponseReadable(listState, bottomControl)
     val latestId = turns.lastOrNull()?.id
     var anchoredId by rememberSaveable { mutableStateOf(latestId) }
     if (latestId != anchoredId) {
-        // Sending a prompt lands the new turn at the bottom in the same measure pass; later status
-        // changes only grow the pinned item, so a reader further up is never pulled down.
+        // 发送提示词时立即定位新增消息；后续状态变化只扩展该消息，不强制拉动正在查看历史的用户。
         SideEffect { anchoredId = latestId; bottomControl.reset(); listState.requestScrollToItem(0) }
     }
 
@@ -241,7 +239,7 @@ private fun ImageResultCard(turn: ImageTurn, viewModel: MainViewModel, onOpen: (
         }
         if (count == 1) {
             val source = turn.images.first()
-            // The tile starts square and settles on the decoded ratio; the pinned list grows upward with it.
+            // 图片初始使用正方形占位，解码后按实际比例布局，列表随之向上扩展。
             val ratio by animateFloatAsState(ratios[source] ?: 1f, spring(dampingRatio = 1f, stiffness = Spring.StiffnessMediumLow), label = "image-ratio")
             ImageResultTile(source, 0, count, Modifier.fillMaxWidth(), viewModel,
                 { onOpen(source) }, { ratios[source] = it }, ratio = ratio)

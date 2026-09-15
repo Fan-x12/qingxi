@@ -42,7 +42,7 @@ internal fun ExpandableResultText(text: String) {
         val rotation by animateFloatAsState(if (expanded) 180f else 0f,
             spring(dampingRatio = 1f, stiffness = 900f), label = "result-text-chevron")
         Column {
-            // Keep full text laid out throughout collapse; only its viewport changes.
+            // 收起期间仍布局完整文字，仅改变外部可见范围。
             Box(Modifier.fillMaxWidth().height(height).clipToBounds().testTag("result-text-viewport")) {
                 Text(text, style = textStyle, color = StudioStyle.ink,
                     modifier = Modifier.fillMaxWidth().wrapContentHeight(Alignment.Top, unbounded = true))

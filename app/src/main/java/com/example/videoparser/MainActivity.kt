@@ -169,7 +169,7 @@ private val BubbleShape = RoundedCornerShape(16.dp)
 private val InputShape = RoundedCornerShape(32.dp)
 private val HeaderShape = RoundedCornerShape(24.dp)
 
-// Static outer shadows stay on their own render layers. Press feedback never scales them.
+// 外部静态阴影独立绘制，按压反馈不缩放阴影。
 private fun Modifier.cardShadow(shape: Shape): Modifier = this
     .shadow(28.dp, shape, clip = false, ambientColor = Color.Black.copy(alpha = .16f), spotColor = Color.Black.copy(alpha = .11f))
 
@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Match the initial light canvas before Compose has drawn its first frame.
+        // 在 Compose 首帧绘制前，先让窗口背景匹配浅色页面。
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.BLACK),
             navigationBarStyle = SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.BLACK)
@@ -375,10 +375,9 @@ private fun ParserChatApp(viewModel: MainViewModel, sharedText: String?, imageOp
     val topClearance = with(density) { if (headerHeightPx > 0) headerHeightPx.toDp() else 88.dp }
     val navigationBarHeight = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
     val imeHeight = with(density) { WindowInsets.ime.getBottom(this).toDp() }
-    // Follow the animated text viewport; the timeline must not start a second animation.
+    // 跟随输入区的高度动画，避免时间线再启动一套动画。
     val composerHeight = with(density) { if (composerSurfaceHeightPx > 0) composerSurfaceHeightPx.toDp() else ComposerCollapsedHeight }
-    // The timeline is inset by the keyboard while the composer sits above max(navigation bar,
-    // keyboard); only the part of the navigation bar not yet covered by the keyboard adds to the gap.
+    // 时间线避让键盘；输入区取键盘与导航栏高度的较大值，仅补足未被键盘覆盖的导航栏间距。
     val bottomClearance = composerHeight + 30.dp + (navigationBarHeight - imeHeight).coerceAtLeast(0.dp)
     BoxWithConstraints(Modifier.fillMaxSize()) {
     val drawerWidth = minOf(336.dp, maxWidth * .84f)
@@ -507,7 +506,7 @@ private fun ParserChatApp(viewModel: MainViewModel, sharedText: String?, imageOp
         AnimatedVisibility(visible = showImageSettings, enter = fadeIn(tween(160)), exit = fadeOut(tween(120))) {
             ImageServiceSettings(onClose = { showImageSettings = false })
         }
-        // Keep the drawer measured off-screen; opening should only move layers.
+        // 抽屉在屏幕外保持测量，打开时只移动绘制层。
         Box(Modifier.fillMaxSize()) {
             if (showModes || drawerVisible) {
                 Box(Modifier.fillMaxSize().graphicsLayer { alpha = drawerMotion.progress }
@@ -562,16 +561,14 @@ private fun ChatHeader(colors: AppPalette, title: String, onModes: () -> Unit, o
 
 private val TimelineSpacing = 22.dp
 
-// What an assistant slot renders. Data-class equality keeps the response transition idle while
-// only unrelated state (download progress, drafts) recomposes the timeline.
+// 用数据类相等性判断响应内容，避免下载进度或草稿变化重复触发过渡。
 private sealed interface AssistantSlot {
     data class Live(val state: ParseState) : AssistantSlot
     data class Past(val entry: HistoryEntry) : AssistantSlot
     data object Stopped : AssistantSlot
 }
 
-// Live and persisted versions of the same outcome share a key, so finishing a parse and later
-// starting another one never rebuilds the result card or its player state.
+// 实时结果与持久化结果共用标识，避免解析完成后重建卡片和播放器状态。
 private fun AssistantSlot.phase(): String = when (this) {
     is AssistantSlot.Live -> when (state) {
         is ParseState.Loading -> "loading"
@@ -588,13 +585,11 @@ private fun AssistantSlot.phase(): String = when (this) {
 
 @Composable
 private fun ChatTimeline(history: List<HistoryEntry>, activeUrl: String?, state: ParseState, scrollRequest: Int, activeTurnId: Long?, openHistoryId: Long?, progress: Int?, viewModel: MainViewModel, context: Context, colors: AppPalette, modifier: Modifier, topClearance: Dp, bottomClearance: Dp) {
-    // Newest turn first with reverseLayout: index 0 stays pinned to the bottom, so a response that
-    // grows (waiting -> result, preview ratio, keyboard or composer height) extends upward instead
-    // of sliding out under the composer. Cold starts and mode switches land at the bottom.
+    // 列表反向布局，最新消息固定在底部；内容增高时向上扩展，启动和模式切换时定位到底部。
     val listState = rememberLazyListState()
     val bottomControl = rememberChatBottomControl(listState)
     KeepLatestResponseReadable(listState, bottomControl)
-    // The same turn keeps its keys from loading through persistence and later requests.
+    // 同一轮消息从加载到保存历史始终保留相同标识。
     val turns = remember(history, activeTurnId, activeUrl) {
         history.asReversed().map { it.id to it.sourceUrl }.toMutableList().apply {
             if (activeTurnId != null && activeUrl != null && none { it.first == activeTurnId }) {
@@ -602,14 +597,12 @@ private fun ChatTimeline(history: List<HistoryEntry>, activeUrl: String?, state:
             }
         }
     }
-    // History already on screen is stable; only a newly submitted active turn should animate.
-    // Keying the baseline to history prevents cold-start restoration from replaying every row.
+    // 仅新提交的消息播放入场动画；以历史记录为基准，避免启动恢复时所有消息重复入场。
     val initialTurnIds = remember(history) { history.map { it.id }.toSet() }
     val entriesById = remember(history) { history.associateBy { it.id } }
     var handledScrollRequest by rememberSaveable { mutableIntStateOf(scrollRequest) }
     if (scrollRequest != handledScrollRequest && openHistoryId == null) {
-        // Applied in the same measure pass that adds the turn, so it is laid out at the bottom and
-        // its entrance pushes older messages up instead of the list following a key afterwards.
+        // 新增消息在本次测量时直接定位底部，入场过程推动旧消息上移。
         SideEffect { bottomControl.reset(); listState.requestScrollToItem(0) }
     }
     LaunchedEffect(scrollRequest) {
@@ -626,7 +619,7 @@ private fun ChatTimeline(history: List<HistoryEntry>, activeUrl: String?, state:
             contentPadding = PaddingValues(start = 20.dp, top = topClearance + 8.dp, end = 20.dp, bottom = bottomClearance + 12.dp),
             verticalArrangement = if (turns.isEmpty()) Arrangement.Top else Arrangement.Bottom
         ) {
-            // Spacing lives inside each entrance so it grows with the message instead of appearing first.
+            // 间距放在入场容器内，随消息同步展开。
             turns.asReversed().forEach { (id, url) ->
                 item(key = "assistant-$id", contentType = "assistant") {
                     val slot = when {
@@ -653,8 +646,7 @@ private fun ChatTimeline(history: List<HistoryEntry>, activeUrl: String?, state:
     }
 }
 
-// Reverse layout: offsets grow upward from the content start at the bottom. Put the opened turn's
-// link at the top of the visible area with its result below, clamped at the newest message.
+// 反向列表的偏移从底部向上增长；将选中历史的链接放在可视区顶部，并限制到最新消息边界。
 private suspend fun LazyListState.revealFromTop(index: Int) {
     scrollToItem(index)
     val info = layoutInfo
@@ -809,8 +801,7 @@ internal fun ResultBubble(result: ParseResult, progress: Int?, viewModel: MainVi
         } else {
             (configuration.screenHeightDp.dp * .70f).coerceIn(320.dp, 640.dp)
         }
-        // Prefer decoded image dimensions; missing metadata must not force portrait images
-        // into a landscape canvas. Videos retain stable playback geometry.
+        // 优先使用解码后的图片尺寸，避免缺少元数据时把竖图放进横向画布；视频保持稳定布局。
         val layoutRatio = if (isImage) {
             ratios[selected.url] ?: if ((selected.width ?: 0) > 0 && (selected.height ?: 0) > 0) {
                 previewAspectRatio(selected.width, selected.height)
@@ -908,8 +899,7 @@ internal fun ResultBubble(result: ParseResult, progress: Int?, viewModel: MainVi
                                 AsyncImage(
                                     imageModel(item.url),
                                     "查看第 ${index + 1} 张图片",
-                                    // Fill the preview during resizing and for capped long images;
-                                    // the viewer still fits the complete original without cropping.
+                                    // 预览缩放和长图限高时填满区域，原图查看器仍完整显示图片。
                                     contentScale = ContentScale.Crop,
                                     alignment = Alignment.TopCenter,
                                     modifier = Modifier.fillMaxSize(),
@@ -1086,8 +1076,7 @@ internal fun Composer(value: String, placeholder: String = "发送一个分享�
                 Modifier.fillMaxWidth()
                     .padding(start = 54.dp, end = 54.dp, top = ComposerFieldTopInset, bottom = ComposerFieldBottomInset)
                     .testTag("composer-text-viewport")
-                    // Clip new lines inside the animated viewport. Its measured height also
-                    // drives the surface, while top alignment keeps existing lines continuous.
+                    // 新增文字行在动画视口内裁切；视口高度同步驱动背景，顶部对齐以保持原有行稳定。
                     .animateContentSize(
                         animationSpec = spring(dampingRatio = 1f, stiffness = 1400f),
                         alignment = Alignment.TopStart
@@ -1096,7 +1085,7 @@ internal fun Composer(value: String, placeholder: String = "发送一个分享�
             ) {
                 BasicTextField(
                     value = value, onValueChange = onValueChange, enabled = !isLoading,
-                    // Keep the field's natural layout independent of the animated viewport.
+                    // 输入框的自然布局独立于外部高度动画。
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = inputStyle,
                     cursorBrush = SolidColor(colors.accent), maxLines = 5,
@@ -1149,8 +1138,7 @@ private fun AssistantRow(colors: AppPalette, content: @Composable () -> Unit) {
 
 @Composable
 internal fun HeaderAction(icon: ImageVector, description: String, colors: AppPalette, onClick: () -> Unit) {
-    // Keep the shadow outside the clipping layer. Compose expands the inner
-    // clickable's touch target into this 48dp slot without expanding its ripple.
+    // 阴影放在裁切层外；点击区域扩展至 48dp，水波纹仍限制在按钮内。
     Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
         Box(Modifier.size(44.dp).floatingShadow(CircleShape, 14.dp)
             .clip(CircleShape).background(Color.White)

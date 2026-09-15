@@ -39,9 +39,7 @@ import androidx.compose.ui.window.PopupProperties
 internal val SecondaryMenuAccent = Color(0xFF0A66FF)
 private val SecondaryMenuDividerColor = Color(0xFFD7DAE0).copy(alpha = .68f)
 
-// Cache a software-rendered soft shadow: Android elevation varies with the popup's
-// window light source and can become almost invisible on some devices. Only the
-// bitmap's straight edges extend during motion; corners and blur never scale.
+// 缓存软件绘制的柔和阴影，避免设备窗口光源差异；动画只延展直边，不缩放圆角与模糊。
 private fun Modifier.menuReveal(progress: () -> Float, end: Boolean, up: Boolean) = drawWithCache {
     val gutter = 52.dp.toPx()
     val bitmap = android.graphics.Bitmap.createBitmap(
@@ -68,7 +66,7 @@ private fun Modifier.menuReveal(progress: () -> Float, end: Boolean, up: Boolean
     val path = Path()
     onDrawWithContent {
         val b = menuRevealBounds(size.width, size.height, progress(), end, up, radius)
-        // Nine slices preserve the shadow's corner radius and blur at both endpoints.
+        // 九宫格切片保持阴影的圆角和模糊范围不变。
         val left = (b[0] - gutter).toInt()
         val top = (b[1] - gutter).toInt()
         val right = (b[2] + gutter).toInt()
@@ -114,12 +112,11 @@ internal fun SecondaryMenuPopup(
     val density = LocalDensity.current
     val dismiss by rememberUpdatedState(onDismissRequest)
     val isExpanded by rememberUpdatedState(expanded)
-    // Retarget the same progress so rapid toggles continue from the current presentation.
+    // 反复切换时复用当前动画进度，连续衔接展开与关闭。
     LaunchedEffect(expanded, motionEnabled) {
         if (expanded) mounted = true
         if (mounted) {
-            // Popup mounting can take several frames. Start only after its first layout,
-            // otherwise most of the entrance may finish before the window is visible.
+            // 弹窗挂载可能需要数帧，首次布局完成后再启动动画，避免窗口显示前动画已结束。
             if (expanded && !positioned) {
                 snapshotFlow { positioned }.first { it }
                 withFrameNanos { }
@@ -154,7 +151,7 @@ internal fun SecondaryMenuPopup(
                     val surfaceX = desiredX.coerceIn(0, (windowSize.width - surfaceWidth).coerceAtLeast(0))
                     val below = anchorBounds.bottom + gapPx
                     val placeAbove = below + surfaceHeight > windowSize.height
-                    // Keep drawing in sync with placement, including the first upward-opening frame.
+                    // 绘制位置与布局同步，包括首次向上展开的帧。
                     opensUpward = placeAbove
                     val surfaceY = if (!placeAbove) below else {
                         (anchorBounds.top - gapPx - surfaceHeight).coerceAtLeast(0)
@@ -167,8 +164,7 @@ internal fun SecondaryMenuPopup(
             popupPositionProvider = positionProvider,
             onDismissRequest = { if (isExpanded) dismiss() },
             properties = PopupProperties(
-                // A non-focusable window still intercepts touches. Release touches as soon as
-                // closing starts, so the underlying trigger can reverse the spring immediately.
+                // 不可聚焦的窗口仍会拦截触摸；开始关闭时立即放行，让触发按钮可以反转动画。
                 flags = WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                     (if (expanded) 0 else WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -183,15 +179,14 @@ internal fun SecondaryMenuPopup(
                 detectTapGestures { if (isExpanded) dismiss() }
             }) {
                 Box(Modifier.onGloballyPositioned { positioned = true }.graphicsLayer {
-                    // Composite once with the shadow gutter inside the layer. This avoids both
-                    // clipped shadows and per-primitive alpha darkening the translucent surface.
+                    // 阴影留白与面板一次合成，避免阴影裁切及半透明元素重复叠加变暗。
                     compositingStrategy = CompositingStrategy.Offscreen
                     alpha = menuFade(progress.value, 0f, .30f)
                 }.padding(shadowPadding)) {
                     Box(
                         Modifier.width(width)
                             .testTag("secondary-menu")
-                            // Blank space inside the menu must not act like its outer shadow gutter.
+                            // 菜单内部空白仍属于面板，不应当作外侧阴影区域处理。
                             .pointerInput(Unit) { detectTapGestures { } }
                             .menuReveal({ progress.value }, alignToEnd, upward)
                             .graphicsLayer {

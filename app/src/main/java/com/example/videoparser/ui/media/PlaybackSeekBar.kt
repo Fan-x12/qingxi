@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
-// Keep Slider's seeking/keyboard/accessibility behavior; draw one continuous track.
+// 保留 Slider 的拖动、键盘与无障碍行为，只自定义连续轨道绘制。
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PlaybackSeekBar(value: Float, onValueChange: (Float) -> Unit,
@@ -39,7 +39,7 @@ internal fun PlaybackSeekBar(value: Float, onValueChange: (Float) -> Unit,
         onValueChangeFinished = onValueChangeFinished, enabled = enabled, interactionSource = interaction,
         modifier = modifier.height(48.dp),
         thumb = {
-            // A fixed slot prevents track length and thumb position from shifting on press.
+            // 固定容器尺寸，防止按下时轨道长度或滑块位置变化。
             Canvas(Modifier.size(24.dp)) {
                 if (emphasis > 0f) drawCircle(active.copy(alpha = .13f * emphasis), radius = 12.dp.toPx())
                 drawCircle(active, radius = (4.5f + 2f * emphasis).dp.toPx())

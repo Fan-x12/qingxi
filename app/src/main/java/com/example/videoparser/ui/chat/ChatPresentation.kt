@@ -31,8 +31,7 @@ import kotlinx.coroutines.delay
 
 private fun timelineSizeTransition() = tween<IntSize>(280, easing = FastOutSlowInEasing)
 
-// Saved per keyed lazy item: scrolling back through history never replays arrival.
-// New messages grow into place so older messages above them move in lockstep.
+// 按消息标识保存入场状态，查看历史时不重播；新消息展开时同步推动旧消息。
 @Composable
 internal fun MessageArrival(animate: Boolean, content: @Composable () -> Unit) {
     var arrived by rememberSaveable { mutableStateOf(!animate) }
@@ -53,17 +52,14 @@ internal fun MessageArrival(animate: Boolean, content: @Composable () -> Unit) {
     ) { SelectionContainer { content() } }
 }
 
-// One slot per assistant response. Phase changes (waiting -> result) cross-fade while the slot's
-// height eases without overshoot. Content has no independent slide or translation.
-// States that map to the same key swap content in place and keep the composable's state.
+// 每个响应使用独立容器；阶段切换时淡入淡出，高度平滑变化而不回弹，同标识内容保留组件状态。
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun <T : Any> ResponseEntrance(state: T, animate: Boolean, key: (T) -> Any, content: @Composable (T) -> Unit) {
     var arrived by rememberSaveable { mutableStateOf(!animate) }
     val motion = ValueAnimator.areAnimatorsEnabled()
     val transitionState = remember { MutableTransitionState<T?>(if (arrived || !motion) state else null) }
-    // Open the presentation gate once per response, independently of network phase changes.
-    // A fast result replaces waiting data during the delay rather than restarting the delay.
+    // 每个响应只启动一次展示延迟；快速返回的结果直接替换等待内容，不重新计时。
     var ready by remember { mutableStateOf(arrived || !motion) }
     LaunchedEffect(Unit) {
         if (!ready) {
@@ -94,7 +90,7 @@ internal fun <T : Any> ResponseEntrance(state: T, animate: Boolean, key: (T) -> 
 }
 
 
-// One text response for both modes. The API supplies status, not token-streamed prose.
+// 两种模式共用状态文字展示，接口返回状态而非逐字流式文本。
 @Composable
 internal fun StreamingResponse(title: String, text: String, colors: AppPalette, modifier: Modifier = Modifier) {
     var output by rememberSaveable { mutableStateOf("") }
@@ -106,7 +102,7 @@ internal fun StreamingResponse(title: String, text: String, colors: AppPalette, 
         }
         if (!text.startsWith(output)) output = ""
         while (output.length < text.length) {
-            // Reveal small chunks; completion immediately replaces this response.
+            // 分段显示等待文字，任务完成后立即替换为结果。
             val end = text.offsetByCodePoints(output.length,
                 minOf(2, text.codePointCount(output.length, text.length)))
             output = text.substring(0, end)
@@ -117,7 +113,7 @@ internal fun StreamingResponse(title: String, text: String, colors: AppPalette, 
         verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (motionEnabled) ShimmerTitle(title, colors)
         else Text(title, color = colors.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        // Reserve paragraph height and expose the complete status once to screen readers.
+        // 预留段落高度，并向屏幕阅读器一次提供完整状态。
         Box(Modifier.fillMaxWidth()) {
             Text(text, color = Color.Transparent, style = ChatTypography.body)
             Text(output, color = colors.secondaryText, style = ChatTypography.body,

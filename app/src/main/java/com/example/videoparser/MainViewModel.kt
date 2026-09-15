@@ -75,12 +75,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val scrollRequest: StateFlow<Int> = _scrollRequest.asStateFlow()
     private val _activeTurnId = MutableStateFlow<Long?>(null)
     val activeTurnId: StateFlow<Long?> = _activeTurnId.asStateFlow()
-    /**
-     * Id of the history item currently being inspected in the conversation.
-     * Keeping this separate from [activeUrl] lets the timeline distinguish an
-     * in-place history preview from a newly submitted link, even when the
-     * same URL exists more than once in history.
-     */
+    /** 当前查看的历史记录标识与 [activeUrl] 分开保存，区分同一链接的历史预览与新请求。 */
     private val _openHistoryId = MutableStateFlow<Long?>(null)
     val openHistoryId: StateFlow<Long?> = _openHistoryId.asStateFlow()
     private var parseJob: Job? = null
@@ -175,8 +170,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _activeUrl.value = entry.sourceUrl
             _state.value = ParseState.Success(result)
         } else {
-            // Re-parse in place when a cached media URL has expired. It must
-            // not become a new bottom-anchored conversation turn.
+            // 缓存链接过期时在原位置重新解析，不新增一轮底部消息。
             parse(entry.sourceUrl, historyId = entry.id)
         }
         _scrollRequest.value += 1

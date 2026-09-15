@@ -47,7 +47,7 @@ internal class ChatBottomControl {
     }
 }
 
-// The timelines use reverseLayout: index 0 is the newest message, sitting at the visual bottom.
+// 时间线采用反向布局，索引 0 是位于视觉底部的最新消息。
 @Composable
 internal fun rememberChatBottomControl(list: LazyListState): ChatBottomControl {
     val density = LocalDensity.current
@@ -89,16 +89,13 @@ internal fun BoxScope.ChatBottomButton(control: ChatBottomControl, list: LazyLis
     }
 }
 
-// A short response follows the bottom. Once it exceeds the usable viewport, keep its top
-// visible instead of exposing only its trailing actions. User scrolling always wins.
-// Only the response itself changing size re-anchors: the keyboard or composer resizing the
-// viewport keeps the current offset, so content moves with the keyboard instead of
-// fighting it frame by frame.
+// 短响应跟随底部，超出可视区后保持顶部可见；用户滚动优先。
+// 仅响应自身尺寸变化时重新定位，键盘和输入区变化时保留偏移，避免与键盘动画争抢位置。
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun KeepLatestResponseReadable(list: LazyListState, control: ChatBottomControl) {
     val density = LocalDensity.current
-    // While the keyboard animates, the viewport height is transient; wait for its final size.
+    // 键盘动画期间视口高度不稳定，等待动画完成再使用最终尺寸。
     val settled by rememberUpdatedState(
         WindowInsets.ime.getBottom(density) == WindowInsets.imeAnimationTarget.getBottom(density)
     )
@@ -106,7 +103,7 @@ internal fun KeepLatestResponseReadable(list: LazyListState, control: ChatBottom
         var anchoredKey: Any? = null
         var anchoredSize = -1
         snapshotFlow {
-            // Stop observing per-frame layout changes once the user owns the scroll.
+            // 用户主动滚动后停止逐帧跟踪布局变化。
             if (!settled || !control.followResponse || control.detached || list.isScrollInProgress) {
                 return@snapshotFlow null
             }
