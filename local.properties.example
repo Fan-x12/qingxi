@@ -1,0 +1,4 @@
+# Optional parser credentials. Keep empty to build the UI without API access.
+# Add these entries to local.properties; preserve Android Studio's sdk.dir.
+YRAIN_API_KEY=
+BUGPK_API_KEY=

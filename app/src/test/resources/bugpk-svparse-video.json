@@ -1,0 +1,25 @@
+{
+  "code": 200,
+  "msg": "success",
+  "platform": "douyin",
+  "data": {
+    "type": "video",
+    "title": "Example video",
+    "desc": "Synthetic parser test fixture",
+    "author": {"name": "Example Author", "avatar": "https://example.com/avatar.webp"},
+    "cover": "https://example.com/cover.jpeg",
+    "url": "https://example.com/video.mp4",
+    "quality": "original",
+    "duration": 80.01,
+    "size": 3948259,
+    "size_label": "3.77MB",
+    "create_time": 1766503530,
+    "publish_time": "2025-12-23 23:25:30",
+    "urls": [], "images": [], "live_photo": [],
+    "music": {"title": "Example audio", "author": "Example Author", "url": "https://example.com/music.mp3", "cover": "https://example.com/music.webp"},
+    "extra": {"duration_ms": 80010, "share_url": "https://example.com/share"},
+    "video_backup": [{"label": "standard_h264|720p|h264", "quality": "720p", "width": 1080, "height": 720, "size": 3878667, "url": "https://example.com/backup.mp4"}],
+    "bit_rate": 386000
+  },
+  "_bugpkCache": {"cached": true, "ttlSeconds": 600, "status": "STORED"}
+}

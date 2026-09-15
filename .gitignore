@@ -1,0 +1,27 @@
+.gradle/
+.kotlin/
+build/
+**/build/
+.idea/
+*.iml
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+app/release/
+tmp/
+*.apk
+*.aab
+*.jks
+*.keystore
+keystore.properties
+*.log
+
+# Local maintenance notes and private configuration.
+/docs/
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
