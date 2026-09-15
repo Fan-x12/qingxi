@@ -4,6 +4,23 @@
 
 支持 Android 8.0 及以上版本。
 
+## 界面预览
+
+<table>
+  <tr>
+    <th>视频解析</th>
+    <th>对话生图</th>
+    <th>应用设置</th>
+  </tr>
+  <tr>
+    <td width="33%"><a href="assets/screenshots/video-parser.jpg"><img src="assets/screenshots/video-parser.jpg" width="280" alt="视频解析结果与媒体保存界面"></a></td>
+    <td width="33%"><a href="assets/screenshots/image-chat.jpg"><img src="assets/screenshots/image-chat.jpg" width="280" alt="对话生图结果与图片保存界面"></a></td>
+    <td width="33%"><a href="assets/screenshots/settings.jpg"><img src="assets/screenshots/settings.jpg" width="280" alt="本地版本的应用设置界面"></a></td>
+  </tr>
+</table>
+
+截图来自本地演示版本，点击可查看原图。开源版不包含设置图中的更新检测功能；图中旧版接口与用途说明以本文声明和许可证为准。媒体内容仅用于界面展示，其权利归相应权利人所有。
+
 ## 声明
 
 > **仅供学习交流：本项目主要用于 Android UI 与交互实现的学习和参考，不作为稳定的解析服务提供。**
